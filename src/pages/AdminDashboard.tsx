@@ -115,7 +115,7 @@ export default function AdminDashboard() {
       title: "Logged Out",
       description: "You have been successfully logged out",
     });
-    navigate("/admin/login");
+    navigate("/admin/logout");
   };
 
   const handleViewDetails = (application) => {
