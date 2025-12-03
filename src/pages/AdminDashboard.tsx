@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +32,8 @@ export default function AdminDashboard() {
   const [applications, setApplications] = useState([]);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterLoanCategory, setFilterLoanCategory] = useState("");
 
   useEffect(() => {
     const token = sessionStorage.getItem("admin_token");
@@ -142,22 +144,67 @@ export default function AdminDashboard() {
     }
   };
 
+  // Memoized filtered applications for performance
+  const filteredApplications = useMemo(() => {
+    return applications.filter((app) => {
+      const matchesName = app.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesLoan =
+        filterLoanCategory === "" || app.loanCategory === filterLoanCategory;
+
+      return matchesName && matchesLoan;
+    });
+  }, [applications, searchTerm, filterLoanCategory]);
+
+  // Get unique loan categories for the filter dropdown
+  const loanCategories = useMemo(
+    () => [...new Set(applications.map((app) => app.loanCategory))],
+    [applications]
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
-
         {/* HEADER */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-8 flex-wrap gap-2">
           <h1 className="text-4xl font-bold">Admin Dashboard</h1>
 
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate("/admin/settings")}>
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              onClick={() => navigate("/admin/settings")}
+            >
               <Settings className="mr-2 h-4 w-4" /> Settings
             </Button>
             <Button variant="destructive" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" /> Logout
             </Button>
           </div>
+        </div>
+
+        {/* SEARCH & FILTER */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <input
+            type="text"
+            placeholder="Search by name..."
+            className="border rounded px-3 py-2 w-full sm:w-1/2 transition-all focus:ring-2 focus:ring-blue-400"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+
+          <select
+            className="border rounded px-3 py-2 w-full sm:w-1/2 transition-all focus:ring-2 focus:ring-blue-400"
+            value={filterLoanCategory}
+            onChange={(e) => setFilterLoanCategory(e.target.value)}
+          >
+            <option value="">All Loan Categories</option>
+            {loanCategories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* APPLICATIONS TABLE */}
@@ -179,7 +226,7 @@ export default function AdminDashboard() {
               </TableHeader>
 
               <TableBody>
-                {applications.length === 0 && (
+                {filteredApplications.length === 0 && (
                   <TableRow>
                     <TableCell colSpan="5" className="text-center py-6">
                       No applications found
@@ -187,7 +234,7 @@ export default function AdminDashboard() {
                   </TableRow>
                 )}
 
-                {applications.map((app) => (
+                {filteredApplications.map((app) => (
                   <TableRow key={app._id}>
                     <TableCell>{app.name}</TableCell>
                     <TableCell>{app.phoneNumber}</TableCell>
@@ -226,7 +273,6 @@ export default function AdminDashboard() {
             </Table>
           </CardContent>
         </Card>
-
       </div>
 
       {/* VIEW DETAILS MODAL */}
@@ -241,7 +287,6 @@ export default function AdminDashboard() {
 
           {selectedApplication && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-
               {[
                 ["Full Name", selectedApplication.name],
                 ["Phone Number", selectedApplication.phoneNumber],
@@ -263,7 +308,10 @@ export default function AdminDashboard() {
               ))}
 
               <div className="col-span-2 flex justify-end gap-3 mt-6">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
                   Close
                 </Button>
                 <Button
