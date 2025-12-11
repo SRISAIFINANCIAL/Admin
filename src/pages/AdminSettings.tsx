@@ -18,7 +18,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Settings } from "lucide-react";
 
-// Zod schema for password update
 const formSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
   newPassword: z.string().min(6, "New password must be at least 6 characters"),
@@ -43,25 +42,25 @@ export default function AdminSettings(): JSX.Element {
     }
   });
 
-  // Check authentication
+  // ✅ FIXED AUTH CHECK → check for admin_token, not admin_authenticated
   useEffect(() => {
-    const isAuthenticated = sessionStorage.getItem("admin_authenticated");
-    if (!isAuthenticated) {
-      navigate("/admin/login");
-    }
+    const token = sessionStorage.getItem("admin_token");
+    if (!token) navigate("/admin/login");
   }, [navigate]);
 
   const onSubmit: SubmitHandler<FormValues> = async (values) => {
     try {
       const token = sessionStorage.getItem("admin_token");
-      const res = await fetch(`${BACKEND_URL}/api/admin/update`, {
+
+      // ✅ FIXED ROUTE: /admin/update (not /api/admin/update)
+      const res = await fetch(`${BACKEND_URL}/admin/update`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
-          username:sessionStorage.getItem("admin_username"),
+          username: sessionStorage.getItem("admin_username"),
           currentPassword: values.currentPassword,
           newPassword: values.newPassword
         })
@@ -83,9 +82,10 @@ export default function AdminSettings(): JSX.Element {
         description: "Please login again with your new password"
       });
 
-      // Clear session
+      // Logout after password update
       sessionStorage.removeItem("admin_token");
-      sessionStorage.removeItem("admin_authenticated");
+      sessionStorage.removeItem("admin_username");
+
       setTimeout(() => navigate("/admin/login"), 1200);
 
     } catch (err) {

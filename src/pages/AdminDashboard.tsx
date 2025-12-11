@@ -42,8 +42,7 @@ export default function AdminDashboard() {
     fetchApplications(token);
   }, []);
 
-  // ✅ CORRECT ENDPOINT: /application
-  const fetchApplications = async (token: string) => {
+  const fetchApplications = async (token) => {
     try {
       const res = await fetch(`${BACKEND_URL}/application`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -51,11 +50,12 @@ export default function AdminDashboard() {
 
       if (res.status === 401) {
         sessionStorage.removeItem("admin_token");
-        return navigate("/admin/login");
+        navigate("/admin/login");
+        return;
       }
 
       const data = await res.json();
-      setApplications(data); // backend returns full list array
+      setApplications(data);
     } catch (err) {
       toast({
         title: "Error",
@@ -74,12 +74,12 @@ export default function AdminDashboard() {
     navigate("/admin/login");
   };
 
-  const handleViewDetails = (application: any) => {
+  const handleViewDetails = (application) => {
     setSelectedApplication(application);
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (application: any) => {
+  const handleDelete = async (application) => {
     if (!confirm(`Delete application from ${application.name}?`)) return;
 
     try {
@@ -118,8 +118,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // ✅ FIXED PDF DOWNLOAD ROUTE: /application/:id/pdf
-  const handleDownloadPDF = async (application: any) => {
+  const handleDownloadPDF = async (application) => {
     try {
       const token = sessionStorage.getItem("admin_token");
 
@@ -155,9 +154,8 @@ export default function AdminDashboard() {
     }
   };
 
-  // Filter + Search
   const filteredApplications = useMemo(() => {
-    return applications.filter((app: any) => {
+    return applications.filter((app) => {
       const matchesName = app.name
         ?.toLowerCase()
         .includes(searchTerm.toLowerCase());
@@ -171,7 +169,7 @@ export default function AdminDashboard() {
   }, [applications, searchTerm, filterLoanCategory]);
 
   const loanCategories = useMemo(
-    () => [...new Set(applications.map((app: any) => app.loanCategory))],
+    () => [...new Set(applications.map((app) => app.loanCategory))],
     [applications]
   );
 
@@ -195,23 +193,23 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* SEARCH + FILTER */}
+        {/* SEARCH & FILTER */}
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
           <input
             type="text"
             placeholder="Search by name..."
-            className="border rounded px-3 py-2 w-full sm:w-1/2"
+            className="border rounded px-3 py-2 w-full sm:w-1/2 transition-all focus:ring-2 focus:ring-blue-400"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
 
           <select
-            className="border rounded px-3 py-2 w-full sm:w-1/2"
+            className="border rounded px-3 py-2 w-full sm:w-1/2 transition-all focus:ring-2 focus:ring-blue-400"
             value={filterLoanCategory}
             onChange={(e) => setFilterLoanCategory(e.target.value)}
           >
             <option value="">All Loan Categories</option>
-            {loanCategories.map((category: string) => (
+            {loanCategories.map((category) => (
               <option key={category} value={category}>
                 {category}
               </option>
@@ -219,7 +217,7 @@ export default function AdminDashboard() {
           </select>
         </div>
 
-        {/* TABLE */}
+        {/* APPLICATIONS TABLE */}
         <Card>
           <CardHeader>
             <CardTitle>Manage Loan Applications</CardTitle>
@@ -240,13 +238,13 @@ export default function AdminDashboard() {
               <TableBody>
                 {filteredApplications.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-6">
+                    <TableCell colSpan="5" className="text-center py-6">
                       No applications found
                     </TableCell>
                   </TableRow>
                 )}
 
-                {filteredApplications.map((app: any) => (
+                {filteredApplications.map((app) => (
                   <TableRow key={app._id}>
                     <TableCell>{app.name}</TableCell>
                     <TableCell>{app.phoneNumber}</TableCell>
@@ -287,7 +285,7 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* DIALOG */}
+      {/* MODAL */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto p-6 rounded-xl">
           <DialogHeader>
@@ -320,7 +318,10 @@ export default function AdminDashboard() {
               ))}
 
               <div className="col-span-2 flex justify-end gap-3 mt-6">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
                   Close
                 </Button>
                 <Button
