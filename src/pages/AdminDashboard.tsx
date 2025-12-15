@@ -44,7 +44,7 @@ export default function AdminDashboard() {
 
   const fetchApplications = async (token) => {
     try {
-      const res = await fetch(`${BACKEND_URL}/application`, {
+      const res = await fetch(`${BACKEND_URL}/applications`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -86,7 +86,7 @@ export default function AdminDashboard() {
       const token = sessionStorage.getItem("admin_token");
 
       const res = await fetch(
-        `${BACKEND_URL}/application/${application._id}`,
+        `${BACKEND_URL}/applications/${application._id}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -123,7 +123,7 @@ export default function AdminDashboard() {
       const token = sessionStorage.getItem("admin_token");
 
       const res = await fetch(
-        `${BACKEND_URL}/application/${application._id}/pdf`,
+        `${BACKEND_URL}/applications/${application._id}/pdf`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

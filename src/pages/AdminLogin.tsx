@@ -32,7 +32,7 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${BACKEND_URL}/admin/login`, {
+      const res = await fetch(`${BACKEND_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
