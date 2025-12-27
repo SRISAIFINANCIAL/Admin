@@ -1,2 +1,2 @@
 // src/config.ts
-export const BACKEND_URL = "https://loan-inquiry-hub.vercel.app/admin";
+export const BACKEND_URL = "https://backend-pi-lac.vercel.app/admin";
